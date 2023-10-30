@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  tdesign-icons-vue-next:
+    specifier: ^0.2.2
+    version: 0.2.2(vue@3.3.4)
   tdesign-mobile-vue:
     specifier: ^1.0.5
     version: 1.0.5(vue@3.3.4)
