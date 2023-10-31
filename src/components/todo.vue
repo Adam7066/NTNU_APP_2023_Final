@@ -5,7 +5,7 @@
     <Divider/>
 
     <div class="flex justify-end">
-      <Button theme="light" @click="clearAllDone">清除所有已完成項目</Button>
+      <Button theme="light" @click="todoStore.clearAllDone">清除所有已完成項目</Button>
     </div>
 
     <Divider/>
@@ -18,14 +18,14 @@
               <Switch
                   :default-value="item.isDone"
                   :icon="switchIcons"
-                  @change="changeStatus(item.id)"
+                  @change="todoStore.switchTodoItemStatus(item.id)"
               />
             </template>
           </Cell>
           <template #right>
             <div
                 class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4"
-                @click="deleteTodoItem(item.id)"
+                @click="todoStore.deleteTodoItem(item.id)"
             >
               刪除
             </div>
@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import {h, onMounted, ref} from 'vue'
+import {computed, h, ref} from 'vue'
 import {
   Fab,
   Popup,
@@ -64,15 +64,11 @@ import {
   SwipeCell
 } from 'tdesign-mobile-vue'
 import {AddIcon, CloseIcon, CheckIcon} from "tdesign-icons-vue-next"
-import {useTodoStore, TodoItem} from '@/stores/useTodoStore.ts'
+import {useTodoStore} from '@/stores/useTodoStore.ts'
 
 const todoStore = useTodoStore()
 
-const todoList = ref<TodoItem[]>([])
-
-onMounted(() => {
-  todoList.value = todoStore.getTodoList
-})
+const todoList = computed(() => todoStore.getTodoList)
 
 const iconFunc = () => h(AddIcon, {size: '24px'})
 const addTodoPopupVisible = ref(false)
@@ -98,21 +94,7 @@ const addTodo = () => {
   ))
   addTodoContent.value = ""
   addTodoPopupVisible.value = false
-  location.reload()
 }
 
 const switchIcons = [h(CheckIcon, {size: '20px'}), h(CloseIcon, {size: '20px'})]
-const changeStatus = (id: number) => {
-  todoStore.switchTodoItemStatus(id)
-}
-
-const deleteTodoItem = (id: number) => {
-  todoStore.deleteTodoItem(id)
-  location.reload()
-}
-
-const clearAllDone = () => {
-  todoStore.clearAllDone()
-  location.reload()
-}
 </script>
