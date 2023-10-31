@@ -18,10 +18,10 @@
 
 <script setup lang="ts">
 import {ref, shallowRef} from 'vue'
-import Curriculum from './components/curriculum.vue'
-import Note from './components/note.vue'
-import Todo from './components/todo.vue'
-import Welcome from './components/welcome.vue'
+import Curriculum from '@/components/curriculum.vue'
+import Note from '@/components/note.vue'
+import Todo from '@/components/todo.vue'
+import Welcome from '@/components/welcome.vue'
 import {TabBar, TabBarItem} from 'tdesign-mobile-vue'
 import {Icon} from 'tdesign-icons-vue-next'
 

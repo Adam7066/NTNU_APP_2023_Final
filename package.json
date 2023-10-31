@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/node": "^20.8.9",
+    "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^3.2.0",
     "tdesign-icons-vue-next": "^0.2.2",
     "tdesign-mobile-vue": "^1.0.5",
     "vue": "^3.3.4"

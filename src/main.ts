@@ -1,9 +1,13 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import './style.css'
 import App from './App.vue'
-import TDesign from 'tdesign-mobile-vue';
-import 'tdesign-mobile-vue/es/style/index.css';
+import 'tdesign-mobile-vue/es/style/index.css'
+import {createPinia} from "pinia"
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 
 const app = createApp(App)
-app.use(TDesign)
+app.use(pinia)
 app.mount('#app')
