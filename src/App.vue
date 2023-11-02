@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, shallowRef} from 'vue'
+import {ref, shallowRef, markRaw} from 'vue'
 import Curriculum from '@/components/curriculum.vue'
 import Note from '@/components/note.vue'
 import Todo from '@/components/todo.vue'
@@ -30,10 +30,10 @@ const currentView = shallowRef(Welcome)
 
 const tabBarValue = ref('welcome')
 const tabBarList = ref([
-  {value: 'welcome', label: '歡迎', icon: 'home', comp: Welcome},
-  {value: 'curriculum', label: '課表', icon: 'time', comp: Curriculum},
-  {value: 'note', label: '筆記', icon: 'pen', comp: Note},
-  {value: 'todo', label: '待辦', icon: 'root-list', comp: Todo},
+  {value: 'welcome', label: '歡迎', icon: 'home', comp: markRaw(Welcome)},
+  {value: 'curriculum', label: '課表', icon: 'time', comp: markRaw(Curriculum)},
+  {value: 'note', label: '筆記', icon: 'pen', comp: markRaw(Note)},
+  {value: 'todo', label: '待辦', icon: 'root-list', comp: markRaw(Todo)},
 ])
 
 const change = (value: number | string) => {
