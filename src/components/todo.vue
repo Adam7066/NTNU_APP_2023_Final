@@ -11,7 +11,7 @@
     <Divider/>
 
     <CellGroup theme="card">
-      <template v-for="item in todoList" :key="item.id">
+      <template v-for="item in todoList" :key="item">
         <SwipeCell>
           <Cell :title="item.content">
             <template #leftIcon>
@@ -20,6 +20,9 @@
                   :icon="switchIcons"
                   @change="todoStore.switchTodoItemStatus(item.id)"
               />
+            </template>
+            <template #rightIcon>
+              <PenBrushIcon @click="reviseTodo(item.id)"/>
             </template>
           </Cell>
           <template #right>
@@ -35,17 +38,29 @@
     </CellGroup>
 
     <Fab class="mb-14" :icon="iconFunc" @click="addTodoPopupVisible=true"/>
-    <Popup v-model="addTodoPopupVisible" placement="bottom" class="!pb-12">
-      <div class="errorMessage"/>
-      <div class="flex items-center h-14 w-full">
-        <div class="flex-1 text-center text-lg font-bold">增加待辦事項</div>
-        <Button class="mr-8" theme="primary" variant="outline" @click="addTodo">
-          確定
-        </Button>
+
+    <Popup v-model="addTodoPopupVisible" placement="bottom">
+      <div class="pb-12">
+        <div class="errorMessage"/>
+        <div class="flex items-center h-14 w-full">
+          <div class="flex-1 text-center text-lg font-bold">增加待辦事項</div>
+          <Button class="mr-8" theme="primary" variant="outline" @click="addTodo">
+            確定
+          </Button>
+        </div>
+        <Input v-model="addTodoContent" placeholder="請輸入待辦事項內容"/>
       </div>
-      <Input v-model="addTodoContent" placeholder="請輸入待辦事項內容"/>
     </Popup>
 
+    <Popup v-model="reviseTodoPopupVisible" placement="center">
+      <div class="p-4 w-96">
+        <div>修改： {{ reviseTodoContent }} 成</div>
+        <Input v-model="reviseTodoContent"/>
+        <div class="flex justify-end mt-2">
+          <Button theme="primary" variant="outline" @click="handleReviseTodo">確認修改</Button>
+        </div>
+      </div>
+    </Popup>
   </div>
 </template>
 
@@ -63,7 +78,7 @@ import {
   CellGroup,
   SwipeCell
 } from 'tdesign-mobile-vue'
-import {AddIcon, CloseIcon, CheckIcon} from "tdesign-icons-vue-next"
+import {AddIcon, CloseIcon, CheckIcon, PenBrushIcon} from "tdesign-icons-vue-next"
 import {useTodoStore} from '@/stores/useTodoStore.ts'
 
 const todoStore = useTodoStore()
@@ -97,4 +112,22 @@ const addTodo = () => {
 }
 
 const switchIcons = [h(CheckIcon, {size: '20px'}), h(CloseIcon, {size: '20px'})]
+
+const reviseTodoPopupVisible = ref(false)
+const reviseTodoContent = ref("")
+const reviseTodoId = ref(0)
+const reviseTodo = (id: number) => {
+  reviseTodoPopupVisible.value = true
+  reviseTodoContent.value = todoList.value.find(item => item.id === id)?.content ?? ""
+  reviseTodoId.value = id
+}
+
+const handleReviseTodo = () => {
+  todoStore.updateTodoItem({
+    id: reviseTodoId.value,
+    content: reviseTodoContent.value,
+    isDone: todoList.value.find(item => item.id === reviseTodoId.value)?.isDone ?? false
+  })
+  reviseTodoPopupVisible.value = false
+}
 </script>

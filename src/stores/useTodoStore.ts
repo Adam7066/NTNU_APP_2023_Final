@@ -29,6 +29,14 @@ export const useTodoStore = defineStore('todo', {
                 }
                 return todoItem
             })
+        },
+        updateTodoItem(todoItem: TodoItem) {
+            this.todoList = this.todoList.map(item => {
+                if (item.id === todoItem.id) {
+                    item = todoItem
+                }
+                return item
+            })
         }
     },
     getters: {
