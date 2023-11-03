@@ -15,11 +15,10 @@
         <SwipeCell>
           <Cell :title="item.content">
             <template #leftIcon>
-              <Switch
-                  :default-value="item.isDone"
-                  :icon="switchIcons"
-                  @change="todoStore.switchTodoItemStatus(item.id)"
-              />
+              <div @click="todoStore.switchTodoItemStatus(item.id)">
+                <CheckIcon v-if="item.isDone"/>
+                <CloseIcon v-else/>
+              </div>
             </template>
             <template #rightIcon>
               <PenBrushIcon @click="reviseTodo(item.id)"/>
@@ -73,7 +72,6 @@ import {
   Input,
   Message,
   Divider,
-  Switch,
   Cell,
   CellGroup,
   SwipeCell
@@ -110,8 +108,6 @@ const addTodo = () => {
   addTodoContent.value = ""
   addTodoPopupVisible.value = false
 }
-
-const switchIcons = [h(CheckIcon, {size: '20px'}), h(CloseIcon, {size: '20px'})]
 
 const reviseTodoPopupVisible = ref(false)
 const reviseTodoContent = ref("")
