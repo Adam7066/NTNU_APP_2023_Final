@@ -16,8 +16,8 @@
           <Cell :title="item.content">
             <template #leftIcon>
               <div @click="todoStore.switchTodoItemStatus(item.id)">
-                <CheckIcon v-if="item.isDone"/>
-                <CloseIcon v-else/>
+                <CheckCircleIcon v-if="item.isDone"/>
+                <CircleIcon v-else/>
               </div>
             </template>
             <template #rightIcon>
@@ -76,7 +76,7 @@ import {
   CellGroup,
   SwipeCell
 } from 'tdesign-mobile-vue'
-import {AddIcon, CloseIcon, CheckIcon, PenBrushIcon} from "tdesign-icons-vue-next"
+import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
 import {useTodoStore} from '@/stores/useTodoStore.ts'
 
 const todoStore = useTodoStore()
