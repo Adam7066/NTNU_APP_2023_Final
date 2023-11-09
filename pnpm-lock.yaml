@@ -8,6 +8,9 @@ dependencies:
   '@types/node':
     specifier: ^20.8.9
     version: 20.8.9
+  '@vueuse/core':
+    specifier: ^10.5.0
+    version: 10.5.0(vue@3.3.4)
   pinia:
     specifier: ^2.1.7
     version: 2.1.7(typescript@5.2.2)(vue@3.3.4)
