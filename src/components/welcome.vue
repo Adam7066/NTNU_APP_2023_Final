@@ -6,29 +6,29 @@
       <div>行動 App 程式設計期末專題</div>
       <div class="mt-10">第四組</div>
     </div>
-    <div v-if="!isLogin" class="!bg-white-500 w-80 h-80 rounded-xl shadow-xl p-4 mt-4 flex flex-col justify-center">
-        <Form
-          ref="form"
-          :data="formData"
-          show-error-message
-          label-align="top"
-        >
-        <FormItem label="電子郵件" name="email">
-          <Input v-model="formData.email" borderless placeholder="請輸入電子郵件"></Input>
-        </FormItem>
-        <FormItem label="密碼" name="password">
-          <Input v-model="formData.password" borderless type="password" :clearable="false" placeholder="請輸入密碼">
-            <template #suffixIcon>
-              <BrowseOffIcon />
-            </template>
-          </Input>
-        </FormItem>
-        <div class="relative justify-between flex p-16 box-border">
-          <Button theme="primary" type="submit" size="large" @click="onSubmit">送出</Button>
-          <Button theme="default" type="reset" size="large">重置</Button>
-        </div>
-      </Form>
-    </div>
+      <Form
+        ref="form"
+        :data="formData"
+        show-error-message
+        label-align="top"
+        v-if="!isLogin" 
+        class="!bg-white-500 w-80 h-80 rounded-xl shadow-xl p-4 mt-4 flex flex-col justify-center"
+      >
+      <FormItem label="電子郵件" name="email">
+        <Input v-model="formData.email" borderless placeholder="請輸入電子郵件"></Input>
+      </FormItem>
+      <FormItem label="密碼" name="password">
+        <Input v-model="formData.password" borderless type="password" :clearable="false" placeholder="請輸入密碼">
+          <template #suffixIcon>
+            <BrowseOffIcon />
+          </template>
+        </Input>
+      </FormItem>
+      <div class="relative justify-between flex p-16 box-border">
+        <Button theme="primary" type="submit" size="large" @click="onSubmit">送出</Button>
+        <Button theme="default" type="reset" size="large">重置</Button>
+      </div>
+    </Form>
   </div>
 </template>
 <script setup lang="ts">

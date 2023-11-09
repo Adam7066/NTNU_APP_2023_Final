@@ -4,27 +4,26 @@
       <component :is="currentView"/>
     </keep-alive>
 
-    <tab-bar v-model="tabBarValue" @change="change">
+    <tab-bar v-if="authStore.isLoggedIn" v-model="tabBarValue" @change="change">
       <tab-bar-item v-for="item in tabBarList" :key="item.value" :value="item.value">
         {{ item.label }}
         <template #icon>
           <icon :name="item.icon"/>
         </template>
       </tab-bar-item>
-
     </tab-bar>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, shallowRef, markRaw} from 'vue'
+import {ref, shallowRef, markRaw, onMounted} from 'vue'
 import Curriculum from '@/components/curriculum.vue'
 import Note from '@/components/note.vue'
 import Todo from '@/components/todo.vue'
 import Welcome from '@/components/welcome.vue'
 import {TabBar, TabBarItem} from 'tdesign-mobile-vue'
 import {Icon} from 'tdesign-icons-vue-next'
-
+import {useAuthStore} from '@/stores/auth'
 
 const currentView = shallowRef(Welcome)
 
@@ -40,4 +39,7 @@ const change = (value: number | string) => {
   const item = tabBarList.value.find(item => item.value === value)
   currentView.value = item?.comp ?? Welcome
 }
+
+const authStore = useAuthStore()
+
 </script>
