@@ -2,6 +2,7 @@
   <!-- flex vertical -->
   <div class="w-full h-full flex flex-col items-center justify-center">
     <div class="loginMessage"/>
+    <div class="logoutMessage"/>
     <div class="text-center text-2xl">
       <div>行動 App 程式設計期末專題</div>
       <div class="mt-10">第四組</div>
@@ -24,11 +25,15 @@
           </template>
         </Input>
       </FormItem>
-      <div class="relative justify-between flex p-16 box-border">
-        <Button theme="primary" type="submit" size="large" @click="onSubmit">送出</Button>
-        <Button theme="default" type="reset" size="large">重置</Button>
+      <div class="flex flex-grow items-center justify-center">
+        <Button theme="primary" type="submit" size="large" block @click="onSubmit" class="m-4">登入</Button>
       </div>
     </Form>
+    <div class="flex items-center justify-center">
+      <Button theme="danger" size="large" block v-if="isLogin" @click="onSubmitLogout" class="mx-16 mt-12">
+        登出
+      </Button>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -47,8 +52,12 @@
   const authStore = useAuthStore();
 
   const formData = ref({
-    email: '',
-    password: '',
+    email: 'admin@ntnu.app',
+    password: '1234567890',
+  });
+
+  const logoutData = ref({
+    token: ''
   });
 
   const isLogin = ref(false)
@@ -58,6 +67,11 @@
   }
 
   interface LoginResData {
+    code: number;
+    msg: string;
+    data: AuthData;
+  }
+  interface LogoutResData {
     code: number;
     msg: string;
     data: AuthData;
@@ -93,8 +107,42 @@
       if (authStore.isLoggedIn) loginAfter()
     }
   }
-
+  const onSubmitLogout = async () => {
+    logoutData.value.token = authStore.getToken
+    const { data } = await useFetch<LogoutResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/logout', {
+      method: 'POST',
+      body: JSON.stringify(logoutData.value),
+    })
+    if (data.value) {
+      if (JSON.parse(data.value).msg !== 'success') {
+        Message['error']({
+          offset: [10, 16],
+          content: "登出失敗，請重新嘗試！",
+          duration: 3000,
+          icon: true,
+          zIndex: 20000,
+          context: document.querySelector('.logoutMessage') ?? undefined
+        })
+        return
+      }
+      authStore.logout()
+      Message['success']({
+        offset: [10, 16],
+        content: "登出成功",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.logoutMessage') ?? undefined
+      })
+      if (!authStore.isLoggedIn) logoutAfter()
+    }
+  }
 const loginAfter = () => {
   isLogin.value = true
 }
+const logoutAfter = () => {
+  isLogin.value = false
+}
+
+
 </script>
