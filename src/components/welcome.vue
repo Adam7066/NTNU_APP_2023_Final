@@ -52,8 +52,8 @@
   const authStore = useAuthStore();
 
   const formData = ref({
-    email: 'admin@ntnu.app',
-    password: '1234567890',
+    email: ref(import.meta.env.VITE_USER_EMAIL),
+    password: ref(import.meta.env.VITE_USER_PASSWORD),
   });
 
   const logoutData = ref({

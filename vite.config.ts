@@ -3,6 +3,9 @@ import vue from '@vitejs/plugin-vue'
 import {resolve} from "path"
 import branch from "git-branch";
 
+process.env.VITE_USER_EMAIL=""
+process.env.VITE_USER_PASSWORD=""
+
 if (!process.env.VITE_API_ENDPOINT) {
     /*
         Note that in here it's still going to be staging because production
@@ -15,6 +18,8 @@ if (!process.env.VITE_API_ENDPOINT) {
     }
     else {
         process.env.VITE_API_ENDPOINT = "http://127.0.0.1:8000";
+        process.env.VITE_USER_EMAIL="admin@ntnu.app"
+        process.env.VITE_USER_PASSWORD="1234567890"
     }
 }
 
