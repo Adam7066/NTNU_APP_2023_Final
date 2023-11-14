@@ -41,7 +41,6 @@ export const useTodoStore = defineStore('todo', {
     },
     getters: {
         getNum: (state) => state.num,
-        getTodoList: (state) => state.todoList,
     },
     persist: true,
 })

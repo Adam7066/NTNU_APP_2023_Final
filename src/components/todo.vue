@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full p-4">
+  <div class="w-full p-4 pb-40">
     <div class="successMessage"/>
     <div class="text-center text-xl font-semibold">待辦事項</div>
 
@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, h, ref} from 'vue'
+import {h, onMounted, ref} from 'vue'
 import {
   Fab,
   Popup,
@@ -78,14 +78,14 @@ import {
   SwipeCell
 } from 'tdesign-mobile-vue'
 import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
-import {useTodoStore} from '@/stores/useTodoStore.ts'
+import {useTodoStore, TodoItem} from '@/stores/useTodoStore.ts'
 import { useFetch } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 
 
 const todoStore = useTodoStore()
 
-const todoList = computed(() => todoStore.getTodoList)
+const todoList = ref<TodoItem[]>([])
 
 const iconFunc = () => h(AddIcon, {size: '24px'})
 const addTodoPopupVisible = ref(false)
@@ -95,9 +95,14 @@ const addTodoContent = ref({
   content: ref(""),
 })
 
-interface todoListResData {
+interface addTodoListResData {
   error: string;
   data: string;
+}
+
+interface todoListResData {
+  error: string;
+  data: TodoItem[];
 }
 
 const addTodo = async () => {
@@ -118,8 +123,8 @@ const addTodo = async () => {
       Authorization: 'Bearer ' + authStore.getToken,
     },
     body: JSON.stringify(addTodoContent.value),
-  }).get().json<todoListResData>()
-
+  }).get().json<addTodoListResData>()
+  console.log(data.value)
   if (data && data.value) {
     const resData = data.value
     if (resData.error) {
@@ -151,6 +156,7 @@ const addTodo = async () => {
       zIndex: 20000,
       context: document.querySelector('.successMessage') ?? undefined
     })
+    handleGetTodo()
     return
   }
 }
@@ -172,4 +178,35 @@ const handleReviseTodo = () => {
   })
   reviseTodoPopupVisible.value = false
 }
+
+const handleGetTodo = async () => {
+  const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/get_todo_list', {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    }
+  }).get().json<todoListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "可能是登入逾時導致無法獲取資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      return
+    }
+    todoList.value = data.value.data
+
+    return
+  }
+}
+
+onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    await handleGetTodo()
+  }
+})
 </script>
