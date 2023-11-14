@@ -1,5 +1,6 @@
 <template>
   <div class="w-full h-full p-4">
+    <div class="successMessage"/>
     <div class="text-center text-xl font-semibold">待辦事項</div>
 
     <Divider/>
@@ -47,7 +48,7 @@
             確定
           </Button>
         </div>
-        <Input v-model="addTodoContent" placeholder="請輸入待辦事項內容"/>
+        <Input v-model="addTodoContent.content" placeholder="請輸入待辦事項內容"/>
       </div>
     </Popup>
 
@@ -78,6 +79,9 @@ import {
 } from 'tdesign-mobile-vue'
 import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
 import {useTodoStore} from '@/stores/useTodoStore.ts'
+import { useFetch } from "@vueuse/core";
+import { useAuthStore } from "@/stores/auth";
+
 
 const todoStore = useTodoStore()
 
@@ -85,9 +89,19 @@ const todoList = computed(() => todoStore.getTodoList)
 
 const iconFunc = () => h(AddIcon, {size: '24px'})
 const addTodoPopupVisible = ref(false)
-const addTodoContent = ref("")
-const addTodo = () => {
-  if (addTodoContent.value === "") {
+const authStore = useAuthStore()
+
+const addTodoContent = ref({
+  content: ref(""),
+})
+
+interface todoListResData {
+  error: string;
+  data: string;
+}
+
+const addTodo = async () => {
+  if (addTodoContent.value.content === "") {
     Message['error']({
       offset: [10, 16],
       content: "待辦事項內容不得為空",
@@ -98,15 +112,46 @@ const addTodo = () => {
     })
     return
   }
-  todoStore.addTodoItem((
-      {
-        id: todoStore.getNum,
-        content: addTodoContent.value,
-        isDone: false
-      }
-  ))
-  addTodoContent.value = ""
-  addTodoPopupVisible.value = false
+  const { data } = await useFetch<todoListResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/create_todo_item', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    },
+    body: JSON.stringify(addTodoContent.value),
+  })
+  if (data && data.value) {
+    const resData = JSON.parse(data.value)
+    if (resData.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "新增失敗",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      addTodoContent.value.content = ""
+      return
+    }
+    todoStore.addTodoItem((
+        {
+          id: todoStore.getNum,
+          content: addTodoContent.value.content,
+          isDone: false
+        }
+    ))
+    addTodoContent.value.content = ""
+    addTodoPopupVisible.value = false
+    Message['success']({
+      offset: [10, 16],
+      content: "新增成功",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.successMessage') ?? undefined
+    })
+    return
+  }
 }
 
 const reviseTodoPopupVisible = ref(false)
