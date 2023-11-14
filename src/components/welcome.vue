@@ -36,6 +36,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
   import { ref } from 'vue';
   import { BrowseOffIcon } from 'tdesign-icons-vue-next';
@@ -78,11 +79,11 @@
   }
 
   const onSubmit = async () => {
-    const { data } = await useFetch<LoginResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/login', {
+    const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/login', {
       method: 'POST',
       body: JSON.stringify(formData.value),
-    })
-    data.value = JSON.parse(JSON.stringify(data.value))
+    }).get().json<LoginResData>()
+
     if (data.value) {
       if (data.value.msg !== 'success') {
         Message['error']({
@@ -110,10 +111,11 @@
   }
   const onSubmitLogout = async () => {
     logoutData.value.token = authStore.getToken
-    const { data } = await useFetch<LogoutResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/logout', {
+    const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/logout', {
       method: 'POST',
       body: JSON.stringify(logoutData.value),
-    })
+    }).get().json<LogoutResData>()
+
     if (data.value) {
       if (data.value.msg !== 'success') {
         Message['error']({

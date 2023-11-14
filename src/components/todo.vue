@@ -112,14 +112,14 @@ const addTodo = async () => {
     })
     return
   }
-  const { data } = await useFetch<todoListResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/create_todo_item', {
+  const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/create_todo_item', {
     method: 'POST',
     headers: {
       Authorization: 'Bearer ' + authStore.getToken,
     },
     body: JSON.stringify(addTodoContent.value),
-  })
-  data.value = JSON.parse(JSON.stringify(data.value))
+  }).get().json<todoListResData>()
+
   if (data && data.value) {
     const resData = data.value
     if (resData.error) {
