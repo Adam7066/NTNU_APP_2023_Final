@@ -14,7 +14,7 @@ if (!process.env.VITE_API_ENDPOINT) {
     */
     const gitBranch = branch.sync() || "";
     if (gitBranch === "main") {
-        process.env.VITE_ADMISSIONS_API_ENDPOINT = "https://app-api.smallten.me";
+        process.env.VITE_API_ENDPOINT = "https://app-api.smallten.me";
     }
     else {
         process.env.VITE_API_ENDPOINT = "http://127.0.0.1:8000";
