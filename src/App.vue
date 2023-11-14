@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, shallowRef, markRaw, onMounted} from 'vue'
+import {ref, shallowRef, markRaw} from 'vue'
 import Curriculum from '@/components/curriculum.vue'
 import Note from '@/components/note.vue'
 import Todo from '@/components/todo.vue'

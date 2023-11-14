@@ -36,6 +36,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
   import { ref } from 'vue';
   import { BrowseOffIcon } from 'tdesign-icons-vue-next';
@@ -78,12 +79,13 @@
   }
 
   const onSubmit = async () => {
-    const { data } = await useFetch<LoginResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/login', {
+    const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/login', {
       method: 'POST',
       body: JSON.stringify(formData.value),
-    })
+    }).get().json<LoginResData>()
+
     if (data.value) {
-      if (JSON.parse(data.value).msg !== 'success') {
+      if (data.value.msg !== 'success') {
         Message['error']({
           offset: [10, 16],
           content: "登入失敗，請重新嘗試！",
@@ -94,7 +96,7 @@
         })
         return
       }
-      const resData = JSON.parse(data.value).data
+      const resData = data.value.data
       authStore.setToken(resData.token)
       Message['success']({
         offset: [10, 16],
@@ -109,12 +111,13 @@
   }
   const onSubmitLogout = async () => {
     logoutData.value.token = authStore.getToken
-    const { data } = await useFetch<LogoutResData>(`${import.meta.env.VITE_API_ENDPOINT}`+ '/logout', {
+    const { data } = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}`+ '/logout', {
       method: 'POST',
       body: JSON.stringify(logoutData.value),
-    })
+    }).get().json<LogoutResData>()
+
     if (data.value) {
-      if (JSON.parse(data.value).msg !== 'success') {
+      if (data.value.msg !== 'success') {
         Message['error']({
           offset: [10, 16],
           content: "登出失敗，請重新嘗試！",

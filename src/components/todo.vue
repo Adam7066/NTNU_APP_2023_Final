@@ -1,11 +1,13 @@
 <template>
-  <div class="w-full h-full p-4">
+  <div class="w-full p-4 pb-40">
+    <div class="successMessage"/>
+    <div class="errorScreenMessage"/>
     <div class="text-center text-xl font-semibold">待辦事項</div>
 
     <Divider/>
 
     <div class="flex justify-end">
-      <Button theme="light" @click="todoStore.clearAllDone">清除所有已完成項目</Button>
+      <Button theme="light" @click="clearAllDone()">清除所有已完成項目</Button>
     </div>
 
     <Divider/>
@@ -15,8 +17,8 @@
         <SwipeCell>
           <Cell :title="item.content">
             <template #leftIcon>
-              <div @click="todoStore.switchTodoItemStatus(item.id)">
-                <CheckCircleIcon v-if="item.isDone"/>
+              <div @click="switchTodoItemStatus(item.id)">
+                <CheckCircleIcon v-if="item.is_done"/>
                 <CircleIcon v-else/>
               </div>
             </template>
@@ -27,7 +29,7 @@
           <template #right>
             <div
                 class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4"
-                @click="todoStore.deleteTodoItem(item.id)"
+                @click="deleteTodoItem(item.id)"
             >
               刪除
             </div>
@@ -47,13 +49,13 @@
             確定
           </Button>
         </div>
-        <Input v-model="addTodoContent" placeholder="請輸入待辦事項內容"/>
+        <Input v-model="addTodoContent.content" placeholder="請輸入待辦事項內容"/>
       </div>
     </Popup>
 
     <Popup v-model="reviseTodoPopupVisible" placement="center">
       <div class="p-4 w-96">
-        <div>修改： {{ reviseTodoContent }} 成</div>
+        <div>修改： {{ reviseTodoContentBefore }} 成</div>
         <Input v-model="reviseTodoContent"/>
         <div class="flex justify-end mt-2">
           <Button theme="primary" variant="outline" @click="handleReviseTodo">確認修改</Button>
@@ -64,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, h, ref} from 'vue'
+import {h, onMounted, ref} from 'vue'
 import {
   Fab,
   Popup,
@@ -77,17 +79,32 @@ import {
   SwipeCell
 } from 'tdesign-mobile-vue'
 import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
-import {useTodoStore} from '@/stores/useTodoStore.ts'
+import {TodoItem} from '@/stores/useTodoStore.ts'
+import {useFetch} from "@vueuse/core";
+import {useAuthStore} from "@/stores/auth";
 
-const todoStore = useTodoStore()
-
-const todoList = computed(() => todoStore.getTodoList)
+const todoList = ref<TodoItem[]>([])
 
 const iconFunc = () => h(AddIcon, {size: '24px'})
 const addTodoPopupVisible = ref(false)
-const addTodoContent = ref("")
-const addTodo = () => {
-  if (addTodoContent.value === "") {
+const authStore = useAuthStore()
+
+const addTodoContent = ref({
+  content: ref(""),
+})
+
+interface generalTodoListResData {
+  error: string;
+  data: string;
+}
+
+interface todoListResData {
+  error: string;
+  data: TodoItem[];
+}
+
+const addTodo = async () => {
+  if (addTodoContent.value.content === "") {
     Message['error']({
       offset: [10, 16],
       content: "待辦事項內容不得為空",
@@ -98,32 +115,217 @@ const addTodo = () => {
     })
     return
   }
-  todoStore.addTodoItem((
-      {
-        id: todoStore.getNum,
-        content: addTodoContent.value,
-        isDone: false
-      }
-  ))
-  addTodoContent.value = ""
-  addTodoPopupVisible.value = false
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/create_todo_item', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    },
+    body: JSON.stringify(addTodoContent.value),
+  }).get().json<generalTodoListResData>()
+  if (data && data.value) {
+    const resData = data.value
+    if (resData.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "新增失敗",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      addTodoContent.value.content = ""
+      return
+    }
+    addTodoContent.value.content = ""
+    addTodoPopupVisible.value = false
+    Message['success']({
+      offset: [10, 16],
+      content: "新增成功",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.successMessage') ?? undefined
+    })
+    await getTodoList()
+    return
+  }
 }
 
 const reviseTodoPopupVisible = ref(false)
 const reviseTodoContent = ref("")
 const reviseTodoId = ref(0)
+const reviseTodoIsDone = ref(false)
+const reviseTodoContentBefore = ref("")
 const reviseTodo = (id: number) => {
   reviseTodoPopupVisible.value = true
   reviseTodoContent.value = todoList.value.find(item => item.id === id)?.content ?? ""
   reviseTodoId.value = id
+  reviseTodoIsDone.value = todoList.value.find(item => item.id === id)?.is_done ?? false
+  reviseTodoContentBefore.value = reviseTodoContent.value
 }
 
-const handleReviseTodo = () => {
-  todoStore.updateTodoItem({
-    id: reviseTodoId.value,
-    content: reviseTodoContent.value,
-    isDone: todoList.value.find(item => item.id === reviseTodoId.value)?.isDone ?? false
-  })
-  reviseTodoPopupVisible.value = false
+const clearAllDone = async () => {
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/delete_all_done', {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    }
+  }).get().json<generalTodoListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "可能是登入逾時導致無法修改資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorScreenMessage') ?? undefined
+      })
+      return
+    }
+    Message['success']({
+      offset: [10, 16],
+      content: "清除成功",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.successMessage') ?? undefined
+    })
+    await getTodoList()
+    return
+  }
 }
+
+const deleteTodoItem = async (id: number) => {
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/delete_todo_item', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    },
+    body: JSON.stringify({
+      id: id
+    })
+  }).get().json<generalTodoListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "可能是登入逾時導致無法修改資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorScreenMessage') ?? undefined
+      })
+      return
+    }
+    Message['success']({
+      offset: [10, 16],
+      content: "刪除成功",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.successMessage') ?? undefined
+    })
+    await getTodoList()
+    return
+  }
+}
+
+const switchTodoItemStatus = async (id: number) => {
+  const item = todoList.value.find(item => item.id === id)
+  if (item) {
+    const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/switch_todo_item_status', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + authStore.getToken,
+      },
+      body: JSON.stringify({
+        id: id
+      })
+    }).get().json<generalTodoListResData>()
+    if (data && data.value) {
+      if (data.value.error) {
+        Message['error']({
+          offset: [10, 16],
+          content: "可能是登入逾時導致無法修改資料，請關閉並重新登入",
+          duration: 3000,
+          icon: true,
+          zIndex: 20000,
+          context: document.querySelector('.errorScreenMessage') ?? undefined
+        })
+        return
+      }
+      await getTodoList()
+    }
+  }
+}
+
+const handleReviseTodo = async () => {
+  // update todo item content
+  if (reviseTodoId.value) {
+    const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/update_todo_item', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + authStore.getToken,
+      },
+      body: JSON.stringify({
+        id: reviseTodoId.value,
+        content: reviseTodoContent.value,
+        is_done: reviseTodoIsDone.value
+      })
+    }).get().json<generalTodoListResData>()
+    if (data && data.value) {
+      if (data.value.error) {
+        Message['error']({
+          offset: [10, 16],
+          content: "可能是登入逾時導致無法修改資料，請關閉並重新登入",
+          duration: 3000,
+          icon: true,
+          zIndex: 20000,
+          context: document.querySelector('.errorMessage') ?? undefined
+        })
+        return
+      }
+      Message['success']({
+        offset: [10, 16],
+        content: "修改成功",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.successMessage') ?? undefined
+      })
+    }
+    reviseTodoPopupVisible.value = false
+    await getTodoList()
+  }
+}
+
+const getTodoList = async () => {
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/get_todo_list', {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    }
+  }).get().json<todoListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "可能是登入逾時導致無法獲取資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      return
+    }
+    todoList.value = data.value?.data ?? []
+  }
+}
+
+onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    await getTodoList()
+  }
+})
 </script>
