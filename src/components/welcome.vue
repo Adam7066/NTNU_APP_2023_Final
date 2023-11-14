@@ -82,8 +82,9 @@
       method: 'POST',
       body: JSON.stringify(formData.value),
     })
+    data.value = JSON.parse(JSON.stringify(data.value))
     if (data.value) {
-      if (JSON.parse(data.value).msg !== 'success') {
+      if (data.value.msg !== 'success') {
         Message['error']({
           offset: [10, 16],
           content: "登入失敗，請重新嘗試！",
@@ -94,7 +95,7 @@
         })
         return
       }
-      const resData = JSON.parse(data.value).data
+      const resData = data.value.data
       authStore.setToken(resData.token)
       Message['success']({
         offset: [10, 16],
@@ -114,7 +115,7 @@
       body: JSON.stringify(logoutData.value),
     })
     if (data.value) {
-      if (JSON.parse(data.value).msg !== 'success') {
+      if (data.value.msg !== 'success') {
         Message['error']({
           offset: [10, 16],
           content: "登出失敗，請重新嘗試！",

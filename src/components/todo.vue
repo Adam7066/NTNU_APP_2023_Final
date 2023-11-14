@@ -119,8 +119,9 @@ const addTodo = async () => {
     },
     body: JSON.stringify(addTodoContent.value),
   })
+  data.value = JSON.parse(JSON.stringify(data.value))
   if (data && data.value) {
-    const resData = JSON.parse(data.value)
+    const resData = data.value
     if (resData.error) {
       Message['error']({
         offset: [10, 16],
