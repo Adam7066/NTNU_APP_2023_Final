@@ -7,7 +7,7 @@
     <Divider/>
 
     <div class="flex justify-end">
-      <Button theme="light" @click="clearAllDone()">清除所有已完成項目</Button>
+      <Button theme="light" @click="clearAllDoneConfirm()">清除所有已完成項目</Button>
     </div>
 
     <Divider/>
@@ -29,7 +29,7 @@
           <template #right>
             <div
                 class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4 text-white"
-                @click="deleteTodoItem(item.id)"
+                @click="deleteTodoItemConfirm(item.id)"
             >
               刪除
             </div>
@@ -37,6 +37,28 @@
         </SwipeCell>
       </template>
     </CellGroup>
+
+    <Dialog
+        v-model:visible="isShowDeleteConfirmDialog"
+        title="刪除待辦事項"
+        content="確認後該操作將不可逆！"
+        cancel-btn="取消"
+        :confirm-btn="{ content: '確認', theme: 'danger' }"
+        @confirm="deleteTodoItem(deleteTodoId)"
+        @cancel="onCancel"
+    >
+    </Dialog>
+
+    <Dialog
+        v-model:visible="isShowDeleteAllConfirmDialog"
+        title="刪除已勾選完成事項"
+        content="確認後該操作將不可逆！"
+        cancel-btn="取消"
+        :confirm-btn="{ content: '確認', theme: 'danger' }"
+        @confirm="clearAllDone()"
+        @cancel="onCancel"
+    >
+    </Dialog>
 
     <Fab class="mb-14" :icon="iconFunc" @click="addTodoPopupVisible=true"/>
 
@@ -76,7 +98,7 @@ import {
   Divider,
   Cell,
   CellGroup,
-  SwipeCell
+  SwipeCell, Dialog
 } from 'tdesign-mobile-vue'
 import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
 import {TodoItem} from '@/stores/useTodoStore.ts'
@@ -151,11 +173,26 @@ const addTodo = async () => {
   }
 }
 
+
+const isShowDeleteConfirmDialog = ref(false)
+const deleteTodoId = ref(0)
+const deleteTodoItemConfirm = (id: number) => {
+  deleteTodoId.value = id
+  isShowDeleteConfirmDialog.value = true
+}
+
+const isShowDeleteAllConfirmDialog = ref(false)
+const clearAllDoneConfirm = () => {
+  isShowDeleteAllConfirmDialog.value = true
+}
+
+
 const reviseTodoPopupVisible = ref(false)
 const reviseTodoContent = ref("")
 const reviseTodoId = ref(0)
 const reviseTodoIsDone = ref(false)
 const reviseTodoContentBefore = ref("")
+
 const reviseTodo = (id: number) => {
   reviseTodoPopupVisible.value = true
   reviseTodoContent.value = todoList.value.find(item => item.id === id)?.content ?? ""
@@ -192,6 +229,7 @@ const clearAllDone = async () => {
       context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
+    isShowDeleteAllConfirmDialog.value = false
     return
   }
 }
@@ -227,6 +265,8 @@ const deleteTodoItem = async (id: number) => {
       context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
+    isShowDeleteConfirmDialog.value = false
+    deleteTodoId.value = 0
     return
   }
 }
@@ -261,7 +301,7 @@ const switchTodoItemStatus = async (id: number) => {
 }
 
 const handleReviseTodo = async () => {
-  if(reviseTodoContent.value === "") {
+  if (reviseTodoContent.value === "") {
     Message['error']({
       offset: [10, 16],
       content: "待辦事項內容不得為空",
@@ -331,6 +371,10 @@ const getTodoList = async () => {
     }
     todoList.value = data.value?.data ?? []
   }
+}
+
+const onCancel = async () => {
+  console.log('dialog: cancel');
 }
 
 onMounted(async () => {
