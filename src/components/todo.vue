@@ -28,7 +28,7 @@
           </Cell>
           <template #right>
             <div
-                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4"
+                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4 text-white"
                 @click="deleteTodoItem(item.id)"
             >
               刪除
