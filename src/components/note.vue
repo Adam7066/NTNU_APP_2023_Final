@@ -1,7 +1,7 @@
 <template>
-  <div class="w-full h-full p-4">
-    <div class="successMessage"/>
-    <div class="errorScreenMessage"/>
+  <div class="w-full p-4 pb-40">
+    <div class="successNoteMessage"/>
+    <div class="errorNoteScreenMessage"/>
     <div class="text-center text-xl font-semibold">筆記</div>
     <Divider/>
     <CellGroup theme="card">
@@ -54,18 +54,7 @@
         <Textarea class="flex-grow textAreaColor m-4 rounded-xl border-2 border-gray-400"  v-model="textVal" :name="popupTitle" :placeholder="popupPlaceholder" layout="vertical" />
       </div>
     </Popup>
-    <Popup v-model="addNotePopupVisible" placement="bottom">
-      <div class="pb-12">
-        <div class="errorMessage"/>
-        <div class="flex items-center h-14 w-full">
-          <div class="flex-1 text-center text-lg font-bold">增加筆記</div>
-          <Button class="mr-8" theme="primary" variant="outline" @click="addNoteItem">
-            確定
-          </Button>
-        </div>
-        <Input v-model="addNoteItemTitle.title" placeholder="請輸入筆記標題"/>
-      </div>
-    </Popup>
+
     <Popup v-model="reviseNotePopupVisible" placement="center">
       <div class="p-4 w-96">
         <div>修改： {{ reviseNoteTitleBefore }} 成</div>
@@ -73,6 +62,18 @@
         <div class="flex justify-end mt-2">
           <Button theme="primary" variant="outline" @click="handleReviseNote">確認修改</Button>
         </div>
+      </div>
+    </Popup>
+    <Popup v-model="addNotePopupVisible" placement="bottom">
+      <div class="pb-12">
+        <div class="errorNoteMessage"/>
+        <div class="flex items-center h-14 w-full">
+          <div class="flex-1 text-center text-lg font-bold">增加筆記</div>
+          <Button class="mr-8" theme="primary" variant="outline" @click="addNoteItem">
+            確定
+          </Button>
+        </div>
+        <Input v-model="addNoteItemTitle.title" placeholder="請輸入筆記標題"/>
       </div>
     </Popup>
     <Dialog
@@ -190,7 +191,7 @@ const addNoteItem = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.errorMessage') ?? undefined
+      context: document.querySelector('.errorNoteMessage') ?? undefined
     })
     return
   }
@@ -209,7 +210,7 @@ const addNoteItem = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorNoteScreenMessage') ?? undefined
       })
       return
     }
@@ -221,7 +222,7 @@ const addNoteItem = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successNoteMessage') ?? undefined
     })
     await getNoteList()
     return
@@ -243,7 +244,7 @@ const getNoteList = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorNoteScreenMessage') ?? undefined
       })
       return
     }
@@ -269,7 +270,7 @@ const deleteNoteItem = async (id: number) => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorNoteScreenMessage') ?? undefined
       })
       return
     }
@@ -279,7 +280,7 @@ const deleteNoteItem = async (id: number) => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successNoteMessage') ?? undefined
     })
     await getNoteList()
     return
@@ -294,7 +295,7 @@ const handleReviseNote = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.errorMessage') ?? undefined
+      context: document.querySelector('.errorNoteScreenMessage') ?? undefined
     })
     return
   }
@@ -317,7 +318,7 @@ const handleReviseNote = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorNoteScreenMessage') ?? undefined
       })
       return
     }
@@ -327,7 +328,7 @@ const handleReviseNote = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successNoteMessage') ?? undefined
     })
     reviseNotePopupVisible.value = false
     await getNoteList()
@@ -357,7 +358,7 @@ const addNoteContent = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorNoteMessage') ?? undefined
       })
       return
     }
@@ -367,7 +368,7 @@ const addNoteContent = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successNoteMessage') ?? undefined
     })
     isPopupContentVisible.value = false
     await getNoteList()
@@ -393,7 +394,7 @@ const getNoteContent = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorNoteScreenMessage') ?? undefined
       })
       return
     }
