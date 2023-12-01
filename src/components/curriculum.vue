@@ -1,7 +1,7 @@
 <template>
   <div class="w-full p-4 pb-20">
-    <div class="successMessage"/>
-    <div class="errorScreenMessage"/>
+    <div class="successCurrMessage"/>
+    <div class="errorCurrScreenMessage"/>
     <div class="flex items-center">
       <div class="flex-grow text-center text-xl font-semibold">
         課表
@@ -11,6 +11,18 @@
       </div>
     </div>
     <Divider/>
+    <Popup v-model="addCurrPopupVisible" placement="bottom">
+      <div class="pb-12">
+        <div class="errorCurrMessage"/>
+        <div class="flex items-center h-14 w-full">
+          <div class="flex-1 text-center text-lg font-bold">增加課程</div>
+          <Button class="mr-8" theme="primary" variant="outline" @click="addCurr">
+            確定
+          </Button>
+        </div>
+        <Input v-model="addCurrContent.course_id" placeholder="請輸入課程代碼"/>
+      </div>
+    </Popup>
     <div class="p-16px">
       <Popup v-model="menuVisible" placement="right">
         <CellGroup theme="card" class="overflow-auto h-screen py-4 rounded-lg">
@@ -49,18 +61,7 @@
     </div>
     <Fab class="mb-14" :icon="iconFunc" @click="addCurrPopupVisible=true"/>
 
-    <Popup v-model="addCurrPopupVisible" placement="bottom">
-      <div class="pb-12">
-        <div class="errorMessage"/>
-        <div class="flex items-center h-14 w-full">
-          <div class="flex-1 text-center text-lg font-bold">增加課程</div>
-          <Button class="mr-8" theme="primary" variant="outline" @click="addCurr">
-            確定
-          </Button>
-        </div>
-        <Input v-model="addCurrContent.course_id" placeholder="請輸入課程代碼"/>
-      </div>
-    </Popup>
+
   </div>
 </template>
 <script setup lang="ts">
@@ -169,7 +170,7 @@ const addCurr = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.errorMessage') ?? undefined
+      context: document.querySelector('.errorCurrMessage') ?? undefined
     })
     return
   }
@@ -189,7 +190,7 @@ const addCurr = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorCurrScreenMessage') ?? undefined
       })
       addCurrContent.value.course_id = ""
       return
@@ -202,7 +203,7 @@ const addCurr = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successCurrMessage') ?? undefined
     })
     await getCurrList()
     return
@@ -228,7 +229,7 @@ const deleteCurr = async (id: number) => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorCurrScreenMessage') ?? undefined
       })
       return
     }
@@ -238,7 +239,7 @@ const deleteCurr = async (id: number) => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successCurrMessage') ?? undefined
     })
     await getCurrList()
     return
