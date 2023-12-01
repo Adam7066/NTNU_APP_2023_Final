@@ -1,7 +1,7 @@
 <template>
   <div class="w-full p-4 pb-40">
-    <div class="successMessage"/>
-    <div class="errorScreenMessage"/>
+    <div class="successTodoMessage"/>
+    <div class="errorTodoScreenMessage"/>
     <div class="text-center text-xl font-semibold">待辦事項</div>
 
     <Divider/>
@@ -42,7 +42,7 @@
 
     <Popup v-model="addTodoPopupVisible" placement="bottom">
       <div class="pb-12">
-        <div class="errorMessage"/>
+        <div class="errorTodoMessage"/>
         <div class="flex items-center h-14 w-full">
           <div class="flex-1 text-center text-lg font-bold">增加待辦事項</div>
           <Button class="mr-8" theme="primary" variant="outline" @click="addTodo">
@@ -111,7 +111,7 @@ const addTodo = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.errorMessage') ?? undefined
+      context: document.querySelector('.errorTodoMessage') ?? undefined
     })
     return
   }
@@ -131,7 +131,7 @@ const addTodo = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       addTodoContent.value.content = ""
       return
@@ -144,7 +144,7 @@ const addTodo = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
     return
@@ -179,7 +179,7 @@ const clearAllDone = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
@@ -189,7 +189,7 @@ const clearAllDone = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
     return
@@ -214,7 +214,7 @@ const deleteTodoItem = async (id: number) => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
@@ -224,7 +224,7 @@ const deleteTodoItem = async (id: number) => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
     return
@@ -251,7 +251,7 @@ const switchTodoItemStatus = async (id: number) => {
           duration: 3000,
           icon: true,
           zIndex: 20000,
-          context: document.querySelector('.errorScreenMessage') ?? undefined
+          context: document.querySelector('.errorTodoScreenMessage') ?? undefined
         })
         return
       }
@@ -261,7 +261,17 @@ const switchTodoItemStatus = async (id: number) => {
 }
 
 const handleReviseTodo = async () => {
-  // update todo item content
+  if(reviseTodoContent.value === "") {
+    Message['error']({
+      offset: [10, 16],
+      content: "待辦事項內容不得為空",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.errorTodoScreenMessage') ?? undefined
+    })
+    return
+  }
   if (reviseTodoId.value) {
     const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/update_todo_item', {
       method: 'POST',
@@ -282,7 +292,7 @@ const handleReviseTodo = async () => {
           duration: 3000,
           icon: true,
           zIndex: 20000,
-          context: document.querySelector('.errorMessage') ?? undefined
+          context: document.querySelector('.errorTodoScreenMessage') ?? undefined
         })
         return
       }
@@ -292,7 +302,7 @@ const handleReviseTodo = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.successMessage') ?? undefined
+        context: document.querySelector('.successTodoMessage') ?? undefined
       })
     }
     reviseTodoPopupVisible.value = false
@@ -315,7 +325,7 @@ const getTodoList = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
