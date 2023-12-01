@@ -42,16 +42,26 @@
           @cancel="onCancel"
       >
       </Dialog>
+      <Dialog
+          v-model:visible="detectContentEmpty"
+          title="儲存空筆記視為刪除筆記"
+          content="是否繼續？"
+          cancel-btn="否"
+          :confirm-btn="{ content: '是', theme: 'danger' }"
+          @confirm="deleteNoteItem(popupId, 1)"
+          @cancel="onCancel"
+      >
+      </Dialog>
       <div class="w-screen h-screen flex flex-col">
-<!--        two button one left one right-->
-        <div class="flex flex-row justify-between"> <!-- Add justify-between class here -->
+        <div class="flex flex-row justify-between">
           <div class="btn btn--cancel text-center" @click="confirmContentCancel">取消</div>
           <div class="btn justify-end text-center" @click="addNoteContent">儲存</div>
         </div>
         <div class="text-center">
           {{ popupTitle }}
         </div>
-        <Textarea class="flex-grow textAreaColor m-4 rounded-xl border-2 border-gray-400"  v-model="textVal" :name="popupTitle" :placeholder="popupPlaceholder" layout="vertical" />
+        <Textarea class="flex-grow textAreaColor m-4 rounded-xl border-2 border-gray-400" v-model="textVal"
+                  :name="popupTitle" :placeholder="popupPlaceholder" layout="vertical"/>
       </div>
     </Popup>
 
@@ -82,7 +92,7 @@
         content="確認後該操作將不可逆！"
         cancel-btn="取消"
         :confirm-btn="{ content: '確認', theme: 'danger' }"
-        @confirm="deleteNoteItem(deleteItem.note_id)"
+        @confirm="deleteNoteItem(deleteItem.note_id, 2)"
         @cancel="onCancel"
     >
     </Dialog>
@@ -97,7 +107,7 @@ import {
   SwipeCell, Message, Button, Input, Popup, Dialog, Textarea
 } from 'tdesign-mobile-vue'
 import {h, onMounted, ref} from "vue";
-import {AddIcon, CloseIcon, PenBrushIcon} from "tdesign-icons-vue-next";
+import {AddIcon, PenBrushIcon} from "tdesign-icons-vue-next";
 import {useFetch} from "@vueuse/core";
 import {useAuthStore} from "@/stores/auth.ts";
 
@@ -136,6 +146,7 @@ const popupTitle = ref("");
 const popupId = ref(0);
 const popupPlaceholder = ref("");
 const popupCanelConfirm = ref(false);
+const detectContentEmpty = ref(false);
 
 interface deleteItemFormat {
   note_id: number;
@@ -168,7 +179,7 @@ const hidePopup = () => {
 
 const handlePopupContentVisible = async (id: number, title: string) => {
   isPopupContentVisible.value = true
-  if(title === ""){
+  if (title === "") {
     popupPlaceholder.value = "請輸入筆記內容"
   } else {
     popupPlaceholder.value = ""
@@ -178,11 +189,7 @@ const handlePopupContentVisible = async (id: number, title: string) => {
   await getNoteContent()
 }
 
-// const updatePopup = () => {
-//   isPopupContentVisible.value = true
-// }
 
-// add note api
 const addNoteItem = async () => {
   if (addNoteItemTitle.value.title === "") {
     Message['error']({
@@ -252,7 +259,7 @@ const getNoteList = async () => {
   }
 }
 
-const deleteNoteItem = async (id: number) => {
+const deleteNoteItem = async (id: number, op: number) => {
   const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/note', {
     method: 'DELETE',
     headers: {
@@ -283,6 +290,9 @@ const deleteNoteItem = async (id: number) => {
       context: document.querySelector('.successNoteMessage') ?? undefined
     })
     await getNoteList()
+    if (op === 1) {
+      isPopupContentVisible.value = false
+    }
     return
   }
 }
@@ -340,6 +350,10 @@ const handleReviseNote = async () => {
 // api -> POST /note/content , body -> popupId, textVal
 
 const addNoteContent = async () => {
+  if (textVal.value === "") {
+    detectContentEmpty.value = true
+    return
+  }
   const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/note/content', {
     method: 'PUT',
     headers: {
