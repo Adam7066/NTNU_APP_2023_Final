@@ -4,8 +4,7 @@
     <div class="loginMessage"/>
     <div class="logoutMessage"/>
     <div class="text-center text-2xl">
-      <div>行動 App 程式設計期末專題</div>
-      <div class="mt-10">第四組</div>
+      <div>課程小助手</div>
     </div>
       <Form
         ref="form"
