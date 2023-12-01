@@ -14,8 +14,14 @@
           </Cell>
           <template #right>
             <div
-                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4"
-                @click="deleteConfirm(item.note_id, item.tille)"
+                class="inline-flex items-center justify-center bg-[#ed7b2f] h-full px-4 text-white"
+                @click="handlePopupContentVisible(item.note_id, item.title)"
+            >
+              編輯
+            </div>
+            <div
+                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4 text-white"
+                @click="deleteConfirm(item.note_id)"
             >
               刪除
             </div>
@@ -25,6 +31,29 @@
     </CellGroup>
 
     <Fab class="mb-14" :icon="iconFunc" @click="addNotePopupVisible=true"/>
+    <Popup v-model="isPopupContentVisible" placement="right">
+      <Dialog
+          v-model:visible="popupCanelConfirm"
+          title="取消更變"
+          content="確認後如有修改項目將不會儲存，此操作不可逆！"
+          cancel-btn="取消"
+          :confirm-btn="{ content: '確認', theme: 'danger' }"
+          @confirm="hidePopup"
+          @cancel="onCancel"
+      >
+      </Dialog>
+      <div class="w-screen h-screen flex flex-col">
+<!--        two button one left one right-->
+        <div class="flex flex-row justify-between"> <!-- Add justify-between class here -->
+          <div class="btn btn--cancel text-center" @click="confirmContentCancel">取消</div>
+          <div class="btn justify-end text-center" @click="addNoteContent">儲存</div>
+        </div>
+        <div class="text-center">
+          {{ popupTitle }}
+        </div>
+        <Textarea class="flex-grow textAreaColor m-4 rounded-xl border-2 border-gray-400"  v-model="textVal" :name="popupTitle" :placeholder="popupPlaceholder" layout="vertical" />
+      </div>
+    </Popup>
     <Popup v-model="addNotePopupVisible" placement="bottom">
       <div class="pb-12">
         <div class="errorMessage"/>
@@ -64,10 +93,10 @@ import {
   Fab,
   Cell,
   CellGroup,
-  SwipeCell, Message, Button, Input, Popup, Dialog
+  SwipeCell, Message, Button, Input, Popup, Dialog, Textarea
 } from 'tdesign-mobile-vue'
 import {h, onMounted, ref} from "vue";
-import {AddIcon, PenBrushIcon} from "tdesign-icons-vue-next";
+import {AddIcon, CloseIcon, PenBrushIcon} from "tdesign-icons-vue-next";
 import {useFetch} from "@vueuse/core";
 import {useAuthStore} from "@/stores/auth.ts";
 
@@ -100,6 +129,12 @@ const reviseNoteTitle = ref("")
 const reviseNoteTitleBefore = ref("")
 const reviseNoteTitleId = ref(0)
 const isShowDialog = ref(false)
+const isPopupContentVisible = ref(false)
+const textVal = ref("");
+const popupTitle = ref("");
+const popupId = ref(0);
+const popupPlaceholder = ref("");
+const popupCanelConfirm = ref(false);
 
 interface deleteItemFormat {
   note_id: number;
@@ -117,10 +152,34 @@ const reviseTitle = (id: number, title: string) => {
 }
 
 
-const deleteConfirm = (id: number, title: string) => {
+const deleteConfirm = (id: number) => {
   isShowDialog.value = true
   deleteItem.value.note_id = id
 }
+
+const confirmContentCancel = () => {
+  popupCanelConfirm.value = true
+}
+
+const hidePopup = () => {
+  isPopupContentVisible.value = false
+}
+
+const handlePopupContentVisible = async (id: number, title: string) => {
+  isPopupContentVisible.value = true
+  if(title === ""){
+    popupPlaceholder.value = "請輸入筆記內容"
+  } else {
+    popupPlaceholder.value = ""
+  }
+  popupTitle.value = title
+  popupId.value = id
+  await getNoteContent()
+}
+
+// const updatePopup = () => {
+//   isPopupContentVisible.value = true
+// }
 
 // add note api
 const addNoteItem = async () => {
@@ -276,6 +335,73 @@ const handleReviseNote = async () => {
   }
 }
 
+
+// api -> POST /note/content , body -> popupId, textVal
+
+const addNoteContent = async () => {
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/note/content', {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    },
+    body: JSON.stringify({
+      note_id: popupId.value,
+      content: textVal.value
+    })
+  }).get().json<generalNoteListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "儲存失敗，可能是登入逾時導致無法獲取資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      return
+    }
+    Message['success']({
+      offset: [10, 16],
+      content: "儲存成功",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.successMessage') ?? undefined
+    })
+    isPopupContentVisible.value = false
+    await getNoteList()
+    return
+  }
+
+}
+
+// api -> GET /note/content/{nid} , nid -> popupId
+
+const getNoteContent = async () => {
+  const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/note/content/' + popupId.value, {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + authStore.getToken,
+    },
+  }).get().json<generalNoteListResData>()
+  if (data && data.value) {
+    if (data.value.error) {
+      Message['error']({
+        offset: [10, 16],
+        content: "可能是登入逾時導致無法獲取資料，請關閉並重新登入",
+        duration: 3000,
+        icon: true,
+        zIndex: 20000,
+        context: document.querySelector('.errorMessage') ?? undefined
+      })
+      return
+    }
+    textVal.value = data.value?.data ?? ""
+    return
+  }
+}
+
 const onCancel = async () => {
   console.log('dialog: cancel');
 };
@@ -287,3 +413,19 @@ onMounted(async () => {
 })
 
 </script>
+
+<style scoped>
+.btn {
+  font-size: 16px;
+  padding: 8px;
+  width: 4rem !important;
+}
+
+.btn--cancel {
+  color: var(--td-text-color-secondary, rgba(0, 0, 0, 0.6));
+}
+
+.textAreaColor {
+  background-color: var(--td-textarea-background-color, rgba(0, 0, 0, 0.1));
+}
+</style>
