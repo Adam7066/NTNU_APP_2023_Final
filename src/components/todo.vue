@@ -1,13 +1,13 @@
 <template>
   <div class="w-full p-4 pb-40">
-    <div class="successMessage"/>
-    <div class="errorScreenMessage"/>
+    <div class="successTodoMessage"/>
+    <div class="errorTodoScreenMessage"/>
     <div class="text-center text-xl font-semibold">待辦事項</div>
 
     <Divider/>
 
     <div class="flex justify-end">
-      <Button theme="light" @click="clearAllDone()">清除所有已完成項目</Button>
+      <Button theme="light" @click="clearAllDoneConfirm()">清除所有已完成項目</Button>
     </div>
 
     <Divider/>
@@ -28,8 +28,8 @@
           </Cell>
           <template #right>
             <div
-                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4"
-                @click="deleteTodoItem(item.id)"
+                class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4 text-white"
+                @click="deleteTodoItemConfirm(item.id)"
             >
               刪除
             </div>
@@ -38,11 +38,33 @@
       </template>
     </CellGroup>
 
+    <Dialog
+        v-model:visible="isShowDeleteConfirmDialog"
+        title="刪除待辦事項"
+        content="確認後該操作將不可逆！"
+        cancel-btn="取消"
+        :confirm-btn="{ content: '確認', theme: 'danger' }"
+        @confirm="deleteTodoItem(deleteTodoId)"
+        @cancel="onCancel"
+    >
+    </Dialog>
+
+    <Dialog
+        v-model:visible="isShowDeleteAllConfirmDialog"
+        title="刪除已勾選完成事項"
+        content="確認後該操作將不可逆！"
+        cancel-btn="取消"
+        :confirm-btn="{ content: '確認', theme: 'danger' }"
+        @confirm="clearAllDone()"
+        @cancel="onCancel"
+    >
+    </Dialog>
+
     <Fab class="mb-14" :icon="iconFunc" @click="addTodoPopupVisible=true"/>
 
     <Popup v-model="addTodoPopupVisible" placement="bottom">
       <div class="pb-12">
-        <div class="errorMessage"/>
+        <div class="errorTodoMessage"/>
         <div class="flex items-center h-14 w-full">
           <div class="flex-1 text-center text-lg font-bold">增加待辦事項</div>
           <Button class="mr-8" theme="primary" variant="outline" @click="addTodo">
@@ -76,7 +98,7 @@ import {
   Divider,
   Cell,
   CellGroup,
-  SwipeCell
+  SwipeCell, Dialog
 } from 'tdesign-mobile-vue'
 import {AddIcon, CheckCircleIcon, CircleIcon, PenBrushIcon} from "tdesign-icons-vue-next"
 import {TodoItem} from '@/stores/useTodoStore.ts'
@@ -111,7 +133,7 @@ const addTodo = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.errorMessage') ?? undefined
+      context: document.querySelector('.errorTodoMessage') ?? undefined
     })
     return
   }
@@ -131,7 +153,7 @@ const addTodo = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       addTodoContent.value.content = ""
       return
@@ -144,18 +166,33 @@ const addTodo = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
     return
   }
 }
 
+
+const isShowDeleteConfirmDialog = ref(false)
+const deleteTodoId = ref(0)
+const deleteTodoItemConfirm = (id: number) => {
+  deleteTodoId.value = id
+  isShowDeleteConfirmDialog.value = true
+}
+
+const isShowDeleteAllConfirmDialog = ref(false)
+const clearAllDoneConfirm = () => {
+  isShowDeleteAllConfirmDialog.value = true
+}
+
+
 const reviseTodoPopupVisible = ref(false)
 const reviseTodoContent = ref("")
 const reviseTodoId = ref(0)
 const reviseTodoIsDone = ref(false)
 const reviseTodoContentBefore = ref("")
+
 const reviseTodo = (id: number) => {
   reviseTodoPopupVisible.value = true
   reviseTodoContent.value = todoList.value.find(item => item.id === id)?.content ?? ""
@@ -179,7 +216,7 @@ const clearAllDone = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
@@ -189,9 +226,10 @@ const clearAllDone = async () => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
+    isShowDeleteAllConfirmDialog.value = false
     return
   }
 }
@@ -214,7 +252,7 @@ const deleteTodoItem = async (id: number) => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorScreenMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
@@ -224,9 +262,11 @@ const deleteTodoItem = async (id: number) => {
       duration: 3000,
       icon: true,
       zIndex: 20000,
-      context: document.querySelector('.successMessage') ?? undefined
+      context: document.querySelector('.successTodoMessage') ?? undefined
     })
     await getTodoList()
+    isShowDeleteConfirmDialog.value = false
+    deleteTodoId.value = 0
     return
   }
 }
@@ -251,7 +291,7 @@ const switchTodoItemStatus = async (id: number) => {
           duration: 3000,
           icon: true,
           zIndex: 20000,
-          context: document.querySelector('.errorScreenMessage') ?? undefined
+          context: document.querySelector('.errorTodoScreenMessage') ?? undefined
         })
         return
       }
@@ -261,7 +301,17 @@ const switchTodoItemStatus = async (id: number) => {
 }
 
 const handleReviseTodo = async () => {
-  // update todo item content
+  if (reviseTodoContent.value === "") {
+    Message['error']({
+      offset: [10, 16],
+      content: "待辦事項內容不得為空",
+      duration: 3000,
+      icon: true,
+      zIndex: 20000,
+      context: document.querySelector('.errorTodoScreenMessage') ?? undefined
+    })
+    return
+  }
   if (reviseTodoId.value) {
     const {data} = await useFetch(`${import.meta.env.VITE_API_ENDPOINT}` + '/update_todo_item', {
       method: 'POST',
@@ -282,7 +332,7 @@ const handleReviseTodo = async () => {
           duration: 3000,
           icon: true,
           zIndex: 20000,
-          context: document.querySelector('.errorMessage') ?? undefined
+          context: document.querySelector('.errorTodoScreenMessage') ?? undefined
         })
         return
       }
@@ -292,7 +342,7 @@ const handleReviseTodo = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.successMessage') ?? undefined
+        context: document.querySelector('.successTodoMessage') ?? undefined
       })
     }
     reviseTodoPopupVisible.value = false
@@ -315,12 +365,16 @@ const getTodoList = async () => {
         duration: 3000,
         icon: true,
         zIndex: 20000,
-        context: document.querySelector('.errorMessage') ?? undefined
+        context: document.querySelector('.errorTodoScreenMessage') ?? undefined
       })
       return
     }
     todoList.value = data.value?.data ?? []
   }
+}
+
+const onCancel = async () => {
+  console.log('dialog: cancel');
 }
 
 onMounted(async () => {
