@@ -6,19 +6,21 @@
     <Divider/>
     <CellGroup theme="card">
       <template v-for="item in noteList" :key="item">
-        <SwipeCell>
+        <SwipeCell :opened="[false, false]">
+          <template #left>
+            <div
+              class="inline-flex items-center justify-center bg-[#ed7b2f] h-full px-4 text-white"
+              @click="handlePopupContentVisible(item.note_id, item.title)"
+            >
+              編輯
+            </div>
+          </template>
           <Cell :title="item.title">
             <template #rightIcon>
               <PenBrushIcon @click="reviseTitle(item.note_id, item.title)"/>
             </template>
           </Cell>
           <template #right>
-            <div
-                class="inline-flex items-center justify-center bg-[#ed7b2f] h-full px-4 text-white"
-                @click="handlePopupContentVisible(item.note_id, item.title)"
-            >
-              編輯
-            </div>
             <div
                 class="inline-flex items-center justify-center bg-[#e34d59] h-full px-4 text-white"
                 @click="deleteConfirm(item.note_id)"
