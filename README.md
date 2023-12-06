@@ -1,6 +1,7 @@
 # NTNU_APP_2023_Final
 - 師大 112-1 行動 APP 程式設計 期末專題
 - 由於不想拉方塊，那就來寫網頁吧
+- 專案後端：[NTNU_APP_2023_Final_Backend](https://github.com/KutsunaSubaRya/NTNU_APP_2023_Final_Backend)
 
 ## How to start
 1. `git clone git@github.com:Adam7066/NTNU_APP_2023_Final.git`
